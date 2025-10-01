@@ -1,0 +1,53 @@
+/* style_mobile.css */
+
+/* Define a aparência e posição do botão de pulo para dispositivos móveis */
+#mobile-jump-button {
+  /* Tamanho e forma */
+  position: fixed; /* Fica no mesmo lugar na tela */
+  right: 20px;
+  bottom: 20px;
+  width: 70px; /* Largura do botão */
+  height: 70px; /* Altura do botão */
+  border-radius: 50%; /* Torna-o redondo */
+
+  /* Cores e transparência */
+  background-color: rgba(
+    255,
+    255,
+    0,
+    0.45
+  ); /* Amarelo com 45% de transparência (0.45) */
+  border: 2px solid rgba(255, 255, 0, 0.7); /* Borda amarela mais visível */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+
+  /* Texto */
+  color: #333;
+  font-size: 18px;
+  font-weight: bold;
+  text-align: center;
+  line-height: 66px; /* Centraliza o texto verticalmente */
+
+  /* Comportamento */
+  cursor: pointer;
+  z-index: 1000; /* Garante que fique acima de outros elementos do jogo */
+
+  /* Inicialmente escondido para desktops */
+  display: none;
+}
+
+/* Efeito de clique (opcional) */
+#mobile-jump-button:active {
+  background-color: rgba(
+    255,
+    255,
+    0,
+    0.7
+  ); /* Fica menos transparente ao ser pressionado */
+}
+
+/* Media Query: Exibir APENAS em telas de até 768px (típico de tablets/celulares) */
+@media (max-width: 768px) {
+  #mobile-jump-button {
+    display: block; /* Mostra o botão nestas telas */
+  }
+}
