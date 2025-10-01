@@ -46,7 +46,7 @@
 }
 
 /* Media Query: Exibir APENAS em telas de até 768px (típico de tablets/celulares) */
-@media (max-width: 768px) {
+@media (max-width: 1500px) {
   #mobile-jump-button {
     display: block; /* Mostra o botão nestas telas */
   }
