@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Dino Run - inimigos alinhados</title>
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: #f0f0f0;
+        overflow: hidden;
+      }
+
+      /* container do jogo */
+      #game {
+        position: relative;
+        width: 100vw;
+        height: 300px;
+        border-bottom: 3px solid #333;
+        background: #fff;
+        overflow: hidden;
+      }
+
+      /* DINO (mantive sua parte) */
+      #dino {
+        width: 48px; /* 24 * 2 */
+        height: 48px; /* 24 * 2 */
+        background-image: url("./img/person/base/run.png");
+        background-position: 0 0;
+        background-size: 144px 48px; /* (72 * 2) x (24 * 2) */
+        animation: run 0.3s steps(3) infinite;
+        position: absolute;
+        left: 150px;
+        bottom: 20px; /* chão comum */
+      }
+
+      @keyframes run {
+        from {
+          background-position: 0 0;
+        }
+        to {
+          background-position: -144px 0;
+        }
+      }
+
+      /* pulos usando bottom (agora é consistente com os inimigos) */
+      @keyframes jump {
+        0% {
+          bottom: 20px;
+        }
+        30% {
+          bottom: 140px;
+        }
+        60% {
+          bottom: 140px;
+        }
+        70% {
+          bottom: 140px;
+        }
+        100% {
+          bottom: 20px;
+        }
+      }
+
+      /* ---------- INIMIGOS ---------- */
+      .enemy {
+        position: absolute;
+        will-change: transform, left;
+      }
+
+      /* Cactos: cores / tamanhos diferentes pra testar */
+      .cacto1 {
+        width: 48px;
+        height: 48px;
+        background-image: url(./img/Obstaculos/cacto_baixo_spr.png);
+        /* background-color: aquamarine; */
+        background-repeat: no-repeat;
+        background-size: 48px 48px;
+        bottom: 20px;
+      }
+      .cacto2 {
+        width: 48px;
+        height: 64px;
+        background-image: url(./img/Obstaculos/cacto_medio_spr.png);
+        background-repeat: no-repeat;
+        background-size: 64px 64px;
+        bottom: 20px;
+      }
+      .cacto3 {
+        width: 74px;
+        height: 84px;
+        background-image: url(./img/Obstaculos//cacto_grande_spr.png);
+        background-repeat: no-repeat;
+        background-size: 74px 84px;
+        bottom: 20px;
+      }
+
+      /* Pterodáctilo: voa mais alto */
+      .ptero {
+        width: 64px;
+        height: 64px;
+        background-image: url(./img/Obstaculos/pterodactilo_spr.png);
+        background-repeat: no-repeat;
+        background-size: 128px 64px;
+        animation: ptero 0.3s steps(2) infinite;
+      }
+
+      @keyframes ptero {
+        form {
+          background-position: 0 0;
+        }
+        to {
+          background-position: -128px 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="game">
+      <div id="dino"></div>
+    </div>
+
+    <script>
+      const game = document.getElementById("game");
+      const dino = document.getElementById("dino");
+
+      // pulo controlado por animationend (mais confiável que timeout)
+      let isJumping = false;
+      document.addEventListener("keydown", (e) => {
+        if (e.code === "Space" && !isJumping) {
+          isJumping = true;
+          dino.style.animation = "jump 0.75s linear";
+        }
+      });
+
+      // quando terminar a animação de jump, volta a correr
+      dino.addEventListener("animationend", (ev) => {
+        if (ev.animationName === "jump") {
+          dino.style.animation = "run 0.4s steps(3) infinite";
+          isJumping = false;
+        }
+      });
+
+      // controle de inimigos com requestAnimationFrame (mais suave e previsível)
+      const enemiesTypes = ["cacto1", "cacto2", "cacto3", "ptero"];
+      const active = []; // {el, x, width}
+
+      function spawnEnemy() {
+        const type =
+          enemiesTypes[Math.floor(Math.random() * enemiesTypes.length)];
+        const el = document.createElement("div");
+        el.className = "enemy " + type;
+
+        // coloca dentro do container #game
+        game.appendChild(el);
+
+        // define posição inicial (fora da tela à direita)
+        const startX = game.clientWidth + 20;
+        el.style.left = startX + "px";
+
+        // altura específica para ptero (aleatória alto/baixo)
+        // altura específica para ptero (3 opções agora)
+        if (type === "ptero") {
+          const heights = [10, 40, 120]; // baixo, médio, alto
+          const h = heights[Math.floor(Math.random() * heights.length)];
+          el.style.bottom = h + "px";
+        } // cactos já têm bottom:20px pelo CSS
+
+        active.push({
+          el,
+          x: startX,
+          w: el.offsetWidth || (type === "ptero" ? 60 : 40),
+        });
+      }
+
+      // loop de animação
+      let last = performance.now();
+      const SPEED = 0.25; // px por ms (250px/s)
+      function frame(now) {
+        const dt = now - last;
+        last = now;
+
+        for (let i = active.length - 1; i >= 0; i--) {
+          const obj = active[i];
+          obj.x -= SPEED * dt;
+          obj.el.style.left = Math.round(obj.x) + "px";
+
+          // remover quando sair totalmente da tela
+          if (obj.x < -(obj.w + 50)) {
+            obj.el.remove();
+            active.splice(i, 1);
+          }
+        }
+
+        requestAnimationFrame(frame);
+      }
+      requestAnimationFrame(frame);
+
+      // spawn aleatório (1.2s a 2.5s)
+      function scheduleSpawn() {
+        const delay = 1200 + Math.random() * 1300;
+        setTimeout(() => {
+          spawnEnemy();
+          scheduleSpawn();
+        }, delay);
+      }
+      scheduleSpawn();
+    </script>
+  </body>
+</html>
